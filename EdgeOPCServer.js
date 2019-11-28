@@ -13,12 +13,15 @@ const server = new opcua.OPCUAServer({
 });
 
 let start = false;
-let S1_START = true;
-let CM_START_TS = new Date();
-let PRG_ID = 0000000;
+let S1Emitter_Flag = false;
+let S1beltConveyor1 = true;
 
 let S1beltConveyor2=true;
 let S1beltConveyorRejection=true;
+let M1Start = true;
+let S1EmitterEmit = false;
+let S1EmitterPart = 16;
+
 let S1outbeltConveyor=true;
 let S1outbeltConveyor1=true;
 let CurvedbeltConveyorCW =true;
@@ -36,6 +39,10 @@ function post_initialize() {
             browseName: "MyDevice"
         });
 
+
+        /**
+         * Factory I/O Start
+         */
         namespace.addVariable({
             componentOf: device,
             browseName: "START",
@@ -45,30 +52,50 @@ function post_initialize() {
                     return new opcua.Variant({dataType: opcua.DataType.Boolean,value: start});
                 },
                 set : function(variable){
-                    start = variable.value;                    
+                    start = variable.value;          
+                    //console.log("Setting the Emitter to emit now "+start);
+                    if(start){
+                        // //console.log("Inside the start ");
+                        if(!S1Emitter_Flag){
+                            console.log("Emitter Flag is false -->");
+                            setTimeout(()=>{
+                                console.log("Emitting the emitter");
+                                S1EmitterEmit = true; 
+                             },2000); 
+                             setTimeout(()=>{  
+                                console.log("Stopping the emitter");
+                                S1EmitterEmit = false;
+                                S1Emitter_Flag = true;
+                             },3000);
+                        }
+                        // //S1EmitterEmit = true;
+                    }
                     return opcua.StatusCodes.Good;     
                 }
             }
         });
 
         /**
-         * Factory I/O Start from SAP
+         * Station 1 - Belt Conveyor 1
          */
         namespace.addVariable({
             componentOf: device,
-            browseName: "Station1",
+            browseName: "S1beltConveyor1",
             dataType: "Boolean",
             value: {
                 get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1_START});
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1beltConveyor1});
                 },
                 set : function(variable){
-                    S1_START = variable.value;                    
+                    S1beltConveyor1 = variable.value;                    
                     return opcua.StatusCodes.Good;     
                 }
             }
         });
 
+        /**
+         * Station 1 - Belt Conveyor 2
+         */
         namespace.addVariable({
             componentOf: device,
             browseName: "S1beltConveyor2",
@@ -84,6 +111,9 @@ function post_initialize() {
             }
         });
 
+        /**
+         * Station 1 - Belt Conveyor Rejection 
+         */
         namespace.addVariable({
             componentOf: device,
             browseName: "S1beltConveyorRejection",
@@ -99,43 +129,56 @@ function post_initialize() {
             }
         });
 
-
-
-
-        function CM_START_TS1(){
-            if(start){
-                CM_START_TS = new Date();
-                return CM_START_TS;
-            } else {
-                return null;
-            }
-        }
-
         /**
-         * Factory I/O Start Timestamp
+         * Station 1 - CNC Machine 
          */
         namespace.addVariable({
             componentOf: device,
-            browseName: "CM_START_TS",
-            dataType: "DateTime",
+            browseName: "M1Start",
+            dataType: "Boolean",
             value: {
                 get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.DateTime,value: CM_START_TS1()});
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: M1Start});
+                },
+                set : function(variable){
+                    M1Start = variable.value;                    
+                    return opcua.StatusCodes.Good;     
                 }
             }
         });
 
-
+        /**
+         * Station 1 - Emitter(Emit)
+         */
         namespace.addVariable({
             componentOf: device,
-            browseName: "PRG_ID",
-            dataType: "Int64",
+            browseName: "S1EmitterEmit",
+            dataType: "Boolean",
             value: {
                 get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Int64,value: PRG_ID});
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1EmitterEmit});
+                },
+                set : function(variable){ 
+                    S1EmitterEmit = variable.value
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        /**
+         * Station 1 - Emitter (Parts)
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "S1EmitterPart",
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Double,value:S1EmitterPart});
                 },
                 set : function(variable){
-                    PRG_ID = variable.value;                    
+                    //console.log("Value : "+variable.value);
+                    S1EmitterPart = variable.value;                    
                     return opcua.StatusCodes.Good;     
                 }
             }
