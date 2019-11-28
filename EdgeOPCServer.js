@@ -13,9 +13,15 @@ const server = new opcua.OPCUAServer({
 });
 
 let start = false;
-let CM_START = true;
+let S1_START = true;
 let CM_START_TS = new Date();
 let PRG_ID = 0000000;
+
+let S1beltConveyor2=true;
+let S1beltConveyorRejection=true;
+let S1outbeltConveyor=true;
+let S1outbeltConveyor1=true;
+let CurvedbeltConveyorCW =true;
 
 function post_initialize() {
     console.log("initialized");
@@ -50,18 +56,50 @@ function post_initialize() {
          */
         namespace.addVariable({
             componentOf: device,
-            browseName: "Suchit",
+            browseName: "Station1",
             dataType: "Boolean",
             value: {
                 get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: CM_START});
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1_START});
                 },
                 set : function(variable){
-                    CM_START = variable.value;                    
+                    S1_START = variable.value;                    
                     return opcua.StatusCodes.Good;     
                 }
             }
         });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "S1beltConveyor2",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1beltConveyor2});
+                },
+                set : function(variable){
+                    S1beltConveyor2 = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "S1beltConveyorRejection",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1beltConveyorRejection});
+                },
+                set : function(variable){
+                    S1beltConveyorRejection = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+
 
 
         function CM_START_TS1(){
