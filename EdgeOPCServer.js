@@ -14,17 +14,30 @@ const server = new opcua.OPCUAServer({
 
 let start = false;
 let S1Emitter_Flag = false;
-let S1beltConveyor1 = true;
+let S2Emitter_Flag = false;
 
-let S1beltConveyor2=true;
-let S1beltConveyorRejection=true;
 let M1Start = true;
+let M2Start = true;
 let S1EmitterEmit = false;
 let S1EmitterPart = 16;
+let S2EmitterEmit = false;
+let S2EmitterPart = 16;
 
-let S1outbeltConveyor=true;
-let S1outbeltConveyor1=true;
-let CurvedbeltConveyorCW =true;
+let S1OutDiffuseSensor = false;
+let S2OutDiffuseSensor = false;
+
+let RigtDiffuseSensor = false;
+let LeftDiffuseSensor = false;
+
+let LeftPositionerClamp = false;
+let RightPositionerClamp = false;
+let RightPositionerRaise = false;
+
+let TwoaxisPickPlaceX = false;
+let TwoaxisPickPlaceZ = false;
+let TwoaxisPickPlaceG = false;
+
+
 
 function post_initialize() {
     console.log("initialized");
@@ -47,6 +60,7 @@ function post_initialize() {
             componentOf: device,
             browseName: "START",
             dataType: "Boolean",
+            //minimumSamplingInterval:5000,
             value: {
                 get: function () {
                     return new opcua.Variant({dataType: opcua.DataType.Boolean,value: start});
@@ -57,73 +71,34 @@ function post_initialize() {
                     if(start){
                         // //console.log("Inside the start ");
                         if(!S1Emitter_Flag){
-                            console.log("Emitter Flag is false -->");
+                            //console.log("Emitter Flag is false -->");
                             setTimeout(()=>{
-                                console.log("Emitting the emitter");
+                                //console.log("Emitting the emitter");
                                 S1EmitterEmit = true; 
                              },2000); 
                              setTimeout(()=>{  
-                                console.log("Stopping the emitter");
+                                //console.log("Stopping the emitter");
                                 S1EmitterEmit = false;
                                 S1Emitter_Flag = true;
-                             },3000);
+                             },2500);
+
+
+                        }
+
+                        if(!S2Emitter_Flag){
+                            //console.log("Emitter Flag is false -->");
+                            setTimeout(()=>{
+                                //console.log("Emitting the emitter");
+                                S2EmitterEmit = true; 
+                             },2000); 
+                             setTimeout(()=>{  
+                                //console.log("Stopping the emitter");
+                                S2EmitterEmit = false;
+                                S2Emitter_Flag = true;
+                             },2500);
                         }
                         // //S1EmitterEmit = true;
                     }
-                    return opcua.StatusCodes.Good;     
-                }
-            }
-        });
-
-        /**
-         * Station 1 - Belt Conveyor 1
-         */
-        namespace.addVariable({
-            componentOf: device,
-            browseName: "S1beltConveyor1",
-            dataType: "Boolean",
-            value: {
-                get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1beltConveyor1});
-                },
-                set : function(variable){
-                    S1beltConveyor1 = variable.value;                    
-                    return opcua.StatusCodes.Good;     
-                }
-            }
-        });
-
-        /**
-         * Station 1 - Belt Conveyor 2
-         */
-        namespace.addVariable({
-            componentOf: device,
-            browseName: "S1beltConveyor2",
-            dataType: "Boolean",
-            value: {
-                get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1beltConveyor2});
-                },
-                set : function(variable){
-                    S1beltConveyor2 = variable.value;                    
-                    return opcua.StatusCodes.Good;     
-                }
-            }
-        });
-
-        /**
-         * Station 1 - Belt Conveyor Rejection 
-         */
-        namespace.addVariable({
-            componentOf: device,
-            browseName: "S1beltConveyorRejection",
-            dataType: "Boolean",
-            value: {
-                get: function () {
-                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1beltConveyorRejection});
-                },
-                set : function(variable){
-                    S1beltConveyorRejection = variable.value;                    
                     return opcua.StatusCodes.Good;     
                 }
             }
@@ -166,7 +141,8 @@ function post_initialize() {
         });
 
         /**
-         * Station 1 - Emitter (Parts)
+         * Station 1 - Emitter (Parts).
+         * TODO : Randomization of Emitter Parts. 
          */
         namespace.addVariable({
             componentOf: device,
@@ -183,6 +159,198 @@ function post_initialize() {
                 }
             }
         });
+
+
+        /**
+         * Station 1- Diffuse Sensor.
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "S1OutDiffuseSensor",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S1OutDiffuseSensor});
+                },
+                set : function(variable){
+                    S1OutDiffuseSensor = variable.value;  
+                    if(S1OutDiffuseSensor){
+                        S1EmitterEmit = true;
+                        setTimeout(()=>{
+                            S1EmitterEmit = false;
+                        },1000)
+                    }                  
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        /**
+         * Station 2 - CNC Machine 
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "M2Start",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: M2Start});
+                },
+                set : function(variable){
+                    M2Start = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        /**
+         * Station 2 - Emitter(Emit)
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "S2EmitterEmit",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S2EmitterEmit});
+                },
+                set : function(variable){ 
+                    S2EmitterEmit = variable.value
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        /**
+         * Station 2 - Emitter (Parts).
+         * TODO : Randomization of Emitter Parts. 
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "S2EmitterPart",
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Double,value:S2EmitterPart});
+                },
+                set : function(variable){
+                    //console.log("Value : "+variable.value);
+                    S2EmitterPart = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+
+        /**
+         * Station 2- Diffuse Sensor.
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "S2OutDiffuseSensor",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: S2OutDiffuseSensor});
+                },
+                set : function(variable){
+                    S2OutDiffuseSensor = variable.value;  
+                    if(S2OutDiffuseSensor){
+                        S2EmitterEmit = true;
+                        setTimeout(()=>{
+                            S2EmitterEmit = false;
+                        },1000)
+                    }                  
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "LeftDiffuseSensor",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: LeftDiffuseSensor});
+                },
+                set : function(variable){
+                    LeftDiffuseSensor = variable.value;  
+                    if(LeftDiffuseSensor){
+                        /**
+                         * After a few seconds-- Make Left Positioner 
+                         */
+                        setTimeout(()=>{
+                            LeftPositionerClamp = true;
+                        },1000);
+                        setTimeout(()=>{
+                            LeftPositionerClamp = false;
+                        },2000);
+                    }                  
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "RigtDiffuseSensor",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: RigtDiffuseSensor});
+                },
+                set : function(variable){
+                    RigtDiffuseSensor = variable.value;  
+                    if(RigtDiffuseSensor){
+                        /**
+                         * After a few seconds-- Make Left Positioner 
+                         */
+                       setTimeout(()=>{
+                           RightPositionerClamp = true;
+                       },1000);
+                       setTimeout(()=>{
+                           RightPositionerClamp = false;
+                       },2000);
+                    }                  
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "RightPositionerClamp",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: RightPositionerClamp});
+                },
+                set : function(variable){
+                    RightPositionerClamp = variable.value;                 
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "LeftPositionerClamp",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: LeftPositionerClamp});
+                },
+                set : function(variable){
+                    LeftPositionerClamp = variable.value;              
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+
     }
 
 
