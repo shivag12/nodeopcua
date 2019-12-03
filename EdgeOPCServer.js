@@ -33,9 +33,15 @@ let LeftPositionerClamp = false;
 let RightPositionerClamp = false;
 let RightPositionerRaise = false;
 
-let TwoaxisPickPlaceX = false;
-let TwoaxisPickPlaceZ = false;
-let TwoaxisPickPlaceG = false;
+let TAPPX = false;
+let TAPPZ = false;
+let TAPPG = false;
+
+let BBEmitter_Flag = false;
+let BBDiffuseSensor = false;
+let BBEmitterEmit= false;
+let BBEmitterPart = 8;
+
 
 
 
@@ -287,6 +293,48 @@ function post_initialize() {
                         setTimeout(()=>{
                             LeftPositionerClamp = false;
                         },2000);
+
+                        setTimeout(()=>{
+                            TAPPX = true;
+                        },3500)
+
+                        setTimeout(()=>{
+                            TAPPZ = true;
+                        },4500)
+
+                        setTimeout(()=>{
+                            TAPPG = true;                            
+                        },5000)
+
+                        setTimeout(()=>{
+                            TAPPZ = false;
+                        },7000)
+
+                        setTimeout(()=>{
+                            TAPPX = false;
+                        },8000)
+                        
+                        setTimeout(()=>{
+                            TAPPZ= true;
+                        },10000)
+
+                        setTimeout(()=>{
+                            TAPPG= false;
+                        },10500) 
+
+                        setTimeout(()=>{
+                            TAPPZ= false;
+                        },12000)
+
+                        setTimeout(()=>{
+                            RightPositionerRaise = true;
+                        },13000)
+
+                        setTimeout(()=>{
+                            RightPositionerRaise = false;
+                        },14000)
+
+
                     }                  
                     return opcua.StatusCodes.Good;     
                 }
@@ -314,6 +362,7 @@ function post_initialize() {
                        setTimeout(()=>{
                            RightPositionerClamp = false;
                        },2000);
+
                     }                  
                     return opcua.StatusCodes.Good;     
                 }
@@ -349,10 +398,121 @@ function post_initialize() {
                 }
             }
         });
+        
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "TAPPX",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: TAPPX});
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "TAPPZ",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: TAPPZ});
+                }
+            }
+        });
+
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "TAPPG",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: TAPPG});
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "RightPositionerRaise",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: RightPositionerRaise});
+                }
+            }
+        });
+         /**
+         * BlackBox - Diffuse Sensor
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "BBDiffuseSensor",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: BBDiffuseSensor});
+                },
+                set : function(variable){
+                    BBDiffuseSensor = variable.value;          
+                   
+                    if(BBDiffuseSensor == true){
+                        setTimeout(()=>{
+                            //console.log("Emitting the emitter");
+                            BBEmitterEmit = true; 
+                         },1000); 
+                         setTimeout(()=>{  
+                            //console.log("Stopping the emitter");
+                            BBEmitterEmit = false;
+                            //BBEmitter_Flag = true;
+                         },1500);
+                    }
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+          /**
+         * BlackBox - Emitter(Emit)
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "BBEmitterEmit",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: BBEmitterEmit});
+                },
+                set : function(variable){ 
+                    BBEmitterEmit = variable.value
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        /**
+         * BlackBox - Emitter (Parts).
+        
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "BBEmitterPart",
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Double,value:BBEmitterPart});
+                },
+                set : function(variable){
+                    //console.log("Value : "+variable.value);
+                    BBEmitterPart = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
 
 
     }
-
+        
 
     construct_my_address_space(server);
     
