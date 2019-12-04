@@ -41,8 +41,9 @@ let BBEmitter_Flag = false;
 let BBDiffuseSensor = false;
 let BBEmitterEmit= false;
 let BBEmitterPart = 8;
+let SCTargetPosition = 55;
 
-
+let firstRack = [1,2,3,10,11,12,19,20,21,28,29,30,39,48];
 
 
 function post_initialize() {
@@ -77,16 +78,32 @@ function post_initialize() {
                     if(start){
                         // //console.log("Inside the start ");
                         if(!S1Emitter_Flag){
-                            //console.log("Emitter Flag is false -->");
-                            setTimeout(()=>{
-                                //console.log("Emitting the emitter");
-                                S1EmitterEmit = true; 
-                             },2000); 
-                             setTimeout(()=>{  
-                                //console.log("Stopping the emitter");
-                                S1EmitterEmit = false;
-                                S1Emitter_Flag = true;
-                             },2500);
+                            // //console.log("Emitter Flag is false -->");
+                            // setTimeout(()=>{
+                            //     //console.log("Emitting the emitter");
+                            //     S1EmitterEmit = true; 
+                            //  },2000); 
+                            //  setTimeout(()=>{  
+                            //     //console.log("Stopping the emitter");
+                            //     S1EmitterEmit = false;
+                            //     S1Emitter_Flag = true;
+                            //  },2500);
+
+                            console.log("Entering into rack position");
+                            let randomValue = firstRack[Math.floor(Math.random()*firstRack.length)];
+                            SCTargetPosition = randomValue;
+                            console.log("Target position : "+randomValue);
+                            firstRack.splice(firstRack.indexOf(randomValue), 1);
+                            S1Emitter_Flag = true;
+
+                            //  setTimeout(()=>{
+                            //      console.log("Entering into rack position");
+                            //     let randomValue = firstRack[Math.floor(Math.random()*firstRack.length)];
+                            //     SCTargetPosition = randomValue;
+                            //     console.log("Target position : "+randomValue);
+                            //     firstRack.splice(firstRack.indexOf(randomValue), 1);
+                            //     S1Emitter_Flag = true;
+                            //  },2000);
 
 
                         }
@@ -505,6 +522,23 @@ function post_initialize() {
                 set : function(variable){
                     //console.log("Value : "+variable.value);
                     BBEmitterPart = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+
+        //Stacker Crane Target Position 
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "SCTargetPosition",
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Double,value: SCTargetPosition});
+                },
+                set : function(variable){
+                    SCTargetPosition = variable.value;                    
                     return opcua.StatusCodes.Good;     
                 }
             }
