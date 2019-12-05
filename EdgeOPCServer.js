@@ -25,6 +25,7 @@ let S2EmitterPart = 16;
 
 let S1OutDiffuseSensor = false;
 let S2OutDiffuseSensor = false;
+let S2OutDiffuseSensor_flag = false;
 
 let RigtDiffuseSensor = false;
 let LeftDiffuseSensor = false;
@@ -42,8 +43,13 @@ let BBDiffuseSensor = false;
 let BBEmitterEmit= false;
 let BBEmitterPart = 8;
 let SCTargetPosition = 55;
+let SCLeftPositioner = false;
+let SCRightPositioner = false;
+let SCLift = false;
+let SCDiffuseSensor = false;
+let SCDiffFlag = false;
 
-let firstRack = [1,2,3,10,11,12,19,20,21,28,29,30,39,48];
+let firstRack = [1,2,3,10,11,12,19,20,21,28,29,30,37,38,39];
 
 
 function post_initialize() {
@@ -89,12 +95,40 @@ function post_initialize() {
                             //     S1Emitter_Flag = true;
                             //  },2500);
 
-                            console.log("Entering into rack position");
+                            //console.log("Entering into rack position");
                             let randomValue = firstRack[Math.floor(Math.random()*firstRack.length)];
                             SCTargetPosition = randomValue;
                             console.log("Target position : "+randomValue);
-                            firstRack.splice(firstRack.indexOf(randomValue), 1);
+                            //firstRack.splice(firstRack.indexOf(randomValue), 1);
                             S1Emitter_Flag = true;
+
+                            setTimeout(()=>{
+                                SCRightPositioner = true;
+                            },4000);
+
+                            setTimeout(()=>{
+                                SCLift = true;
+                            },5200)
+
+                            setTimeout(()=>{
+                                SCRightPositioner = false
+                            },6400)
+
+                            setTimeout(()=>{
+                                SCTargetPosition = 55;
+                            },8000)
+
+                            setTimeout(()=>{
+                                SCLeftPositioner = true;
+                            },12000)
+
+                            setTimeout(()=>{
+                                SCLift = false;
+                            },13000)
+
+                            setTimeout(()=>{
+                                SCLeftPositioner = false;
+                            },14000)
 
                             //  setTimeout(()=>{
                             //      console.log("Entering into rack position");
@@ -108,18 +142,18 @@ function post_initialize() {
 
                         }
 
-                        if(!S2Emitter_Flag){
-                            //console.log("Emitter Flag is false -->");
-                            setTimeout(()=>{
-                                //console.log("Emitting the emitter");
-                                S2EmitterEmit = true; 
-                             },2000); 
-                             setTimeout(()=>{  
-                                //console.log("Stopping the emitter");
-                                S2EmitterEmit = false;
-                                S2Emitter_Flag = true;
-                             },2500);
-                        }
+                        // if(!S2Emitter_Flag){
+                        //     //console.log("Emitter Flag is false -->");
+                        //     setTimeout(()=>{
+                        //         //console.log("Emitting the emitter");
+                        //         S2EmitterEmit = true; 
+                        //      },2000); 
+                        //      setTimeout(()=>{  
+                        //         //console.log("Stopping the emitter");
+                        //         S2EmitterEmit = false;
+                        //         S2Emitter_Flag = true;
+                        //      },2500);
+                        // }
                         // //S1EmitterEmit = true;
                     }
                     return opcua.StatusCodes.Good;     
@@ -279,10 +313,48 @@ function post_initialize() {
                 set : function(variable){
                     S2OutDiffuseSensor = variable.value;  
                     if(S2OutDiffuseSensor){
-                        S2EmitterEmit = true;
-                        setTimeout(()=>{
-                            S2EmitterEmit = false;
-                        },1000)
+                        if(!S2OutDiffuseSensor_flag){
+                            let randomValue = firstRack[Math.floor(Math.random() * firstRack.length)];
+                            SCTargetPosition = randomValue;
+                            console.log("Target position : " + randomValue);
+                            //S1Emitter_Flag = true;
+
+                            setTimeout(() => {
+                                S2OutDiffuseSensor_flag = false;
+                            }, 4100);
+
+                            setTimeout(() => {
+                                SCRightPositioner = true;
+                            }, 4000);
+
+                            setTimeout(() => {
+                                SCLift = true;
+                            }, 5200)
+
+                            setTimeout(() => {
+                                SCRightPositioner = false
+                            }, 6400)
+
+                            setTimeout(() => {
+                                SCTargetPosition = 55;
+                            }, 8000)
+
+                            setTimeout(() => {
+                                SCLeftPositioner = true;
+                            }, 12000)
+
+                            setTimeout(() => {
+                                SCLift = false;
+                            }, 13000)
+
+                            setTimeout(() => {
+                                SCLeftPositioner = false;
+                            }, 14000)
+                            S2OutDiffuseSensor_flag = true;
+
+                        }
+
+                        
                     }                  
                     return opcua.StatusCodes.Good;     
                 }
@@ -539,6 +611,98 @@ function post_initialize() {
                 },
                 set : function(variable){
                     SCTargetPosition = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        
+        //Stacker Crane Left Positioner 
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "SCLeftPositioner",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: SCLeftPositioner});
+                },
+                set : function(variable){
+                    SCLeftPositioner = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+                //Stacker Crane Right Positioner 
+                namespace.addVariable({
+                    componentOf: device,
+                    browseName: "SCRightPositioner",
+                    dataType: "Boolean",
+                    value: {
+                        get: function () {
+                            return new opcua.Variant({
+                                dataType: opcua.DataType.Boolean,
+                                value: SCRightPositioner
+                            });
+                        },
+                        set: function (variable) {
+                            SCRightPositioner = variable.value;
+                            return opcua.StatusCodes.Good;
+                        }
+                    }
+                });
+
+                        //Stacker Crane Left Positioner 
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "SCLift",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: SCLift});
+                },
+                set : function(variable){
+                    SCLift = variable.value;                    
+                    return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "SCDiffuseSensor",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({dataType: opcua.DataType.Boolean,value: SCDiffuseSensor});
+                },
+                set : function(variable){
+                    SCDiffuseSensor = variable.value;     
+                    if(SCDiffuseSensor){
+                        console.log("Going Inside the SC Diffuse Sensor Flag")
+                        if(!SCDiffFlag){
+                            setTimeout(() => {
+                                SCDiffFlag = false;
+                            }, 2200);
+                            setTimeout(() => {
+                                //console.log("Emitting the emitter");
+                                S1EmitterEmit = true;
+                            }, 2000);
+                            setTimeout(() => {
+                                //console.log("Stopping the emitter");
+                                S1EmitterEmit = false;
+                            }, 2500);
+                            setTimeout(() => {
+                                //console.log("Emitting the emitter");
+                                S2EmitterEmit = true;
+                            }, 2000);
+                            setTimeout(() => {
+                                //console.log("Stopping the emitter");
+                                S2EmitterEmit = false;
+                            }, 2500);
+                            SCDiffFlag = true;
+                        }
+                    }               
                     return opcua.StatusCodes.Good;     
                 }
             }
