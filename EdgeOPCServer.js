@@ -22,6 +22,12 @@ let S1EmitterEmit = false;
 let S1EmitterPart = 16;
 let S2EmitterEmit = false;
 let S2EmitterPart = 16;
+let palletEmitterEmit = false;
+let palletEmitterPart = 1;
+let palletizerElevatorFrontLimit = false;
+let palletizerDiffSensor = false;
+let palletizerDiffSensor_flag = true;
+
 
 let S1OutDiffuseSensor = false;
 let S2OutDiffuseSensor = false;
@@ -48,6 +54,22 @@ let SCRightPositioner = false;
 let SCLift = false;
 let SCDiffuseSensor = false;
 let SCDiffFlag = false;
+
+
+//let palletizerDiffSensor = false;
+let palletizerPush = false;
+let palletizerOpenPlate = false;
+let palletizerElevatorLimit = false;
+let palletizerElevatorUp_new = false;
+let palletizerElevatorDown = false;
+let palletizerElevatorChain = false;
+let palletizerChain = true;
+let palletDiffSensorUp = false;
+let palletDiffSensorUp_flag = false;
+
+//Local Variables
+let palletcount = 0;
+
 
 let firstRack = [1,2,3,10,11,12,19,20,21,28,29,30,37,38,39];
 
@@ -101,9 +123,18 @@ function post_initialize() {
                             console.log("Target position : "+randomValue);
                             //firstRack.splice(firstRack.indexOf(randomValue), 1);
                             S1Emitter_Flag = true;
+                            palletEmitterEmit = true;
+                            
+                            // setTimeout(()=>{
+                            //     palletizerElevatorUp = false;
+                            // },1900)
 
                             setTimeout(()=>{
-                                SCRightPositioner = true;
+                                palletEmitterEmit = false;
+                            },2000)
+
+                            setTimeout(()=>{
+                                SCRightPositioner = true;                                
                             },4000);
 
                             setTimeout(()=>{
@@ -155,6 +186,8 @@ function post_initialize() {
                         //      },2500);
                         // }
                         // //S1EmitterEmit = true;
+                    } else {
+                        palletizerElevatorUp = false;
                     }
                     return opcua.StatusCodes.Good;     
                 }
@@ -704,6 +737,311 @@ function post_initialize() {
                         }
                     }               
                     return opcua.StatusCodes.Good;     
+                }
+            }
+        });
+                //Palletizer  
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerPush",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerPush
+                    });
+                },
+                set: function (variable) {
+                    palletizerPush = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        //Palletizer  
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerOpenPlate",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerOpenPlate
+                    });
+                },
+                set: function (variable) {
+                    palletizerOpenPlate = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+                        //Palletizer  
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerElevatorLimit",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerElevatorLimit
+                    });
+                },
+                set: function (variable) {
+                    palletizerElevatorLimit = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+
+                        //Palletizer  
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerDiffSensor",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerDiffSensor
+                    });
+                },
+                set: function (variable) {
+                    palletizerDiffSensor = variable.value;
+                    //console.log("Palletizer Diff Sensor : "+palletizerDiffSensor);
+                    if(palletizerDiffSensor){
+
+                        if(palletizerDiffSensor_flag){
+                            setTimeout(() => {
+                                palletizerChain = false;
+                                palletizerElevatorLimit = true;
+                            }, 3300);
+                            setTimeout(() => {
+                                palletizerElevatorUp_new = true;                                
+                            }, 4000);
+                            setTimeout(()=>{
+                                palletizerElevatorLimit = false;
+                            },5500)
+                            palletizerDiffSensor_flag = false;
+                        }                                            
+
+                    }
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+
+        /**
+         * Palletizer Diffuse Sensor 
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletDiffSensorUp",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletDiffSensorUp
+                    });
+                },
+                set: function (variable) {
+                    palletDiffSensorUp = variable.value;
+                    if(palletDiffSensorUp){
+                        /**
+                         * Pallet Push & Open Plate has to be Maintened. 
+                         * Three Packets needs to be pushed here. Need to Maintain the count of Boxes which need to go in. 
+                         * After three is pushed. Elevator has to go down a bit and then Three boxes gets kicked in. 
+                         */
+
+                        if(!palletDiffSensorUp_flag){
+
+                             palletcount = palletcount + 1;
+    
+                             console.log("Pallet Count "+palletcount);
+                             setTimeout(() => {
+                                palletDiffSensorUp_flag = false;                                 
+                             }, 2000);
+    
+                             if(palletcount === 3){
+                                 /**
+                                  * Open the plate & Elevator down to one step.
+                                  */
+                                 console.log("Three Boxes has been filled");
+                                 setTimeout(()=>{
+                                    palletizerPush = true;
+                                 },3000);
+        
+                                 setTimeout(()=>{
+                                     palletizerPush = false;
+                                     //palletDiffSensorUp_flag = false;
+                                 },4500);
+                             } else if (palletcount === 6){
+                                 /**
+                                  * Need to Open the plate. and then one step has to go down.
+                                  */
+                                 setTimeout(()=>{
+                                    palletizerPush = true;
+                                 },3000);
+        
+                                 setTimeout(()=>{
+                                     palletizerPush = false;
+                                 },4500);
+
+                                 setTimeout(() => {
+                                     palletizerOpenPlate = true;
+                                 }, 5500);
+
+                                 setTimeout(() => {
+                                     palletizerElevatorDown = true;
+                                 }, 7000);
+
+                                 setTimeout(() => {
+                                    palletizerOpenPlate = false;
+                                }, 10000);
+
+                                setTimeout(() => {
+                                    palletizerElevatorDown = true;
+                                }, 12000);
+                                palletcount = 0;
+                             }
+
+                             palletDiffSensorUp_flag = true;                             
+                        }                         
+                    }
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletCount",
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Double,
+                        value: palletcount
+                    });
+                },
+                set: function (variable) {
+                    palletcount = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+                //Palletizer  
+                namespace.addVariable({
+                    componentOf: device,
+                    browseName: "palletizerElevatorDown",
+                    dataType: "Boolean",
+                    value: {
+                        get: function () {
+                            return new opcua.Variant({
+                                dataType: opcua.DataType.Boolean,
+                                value: palletizerElevatorDown
+                            });
+                        },
+                        set: function (variable) {
+                            palletizerElevatorDown = variable.value;
+                            return opcua.StatusCodes.Good;
+                        }
+                    }
+                });
+
+                        //Palletizer  
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerElevatorChain",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerElevatorChain
+                    });
+                },
+                set: function (variable) {
+                    palletizerElevatorChain = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerChain",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerChain
+                    });
+                },
+                set: function (variable) {
+                    palletizerChain = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletEmitterEmit",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletEmitterEmit
+                    });
+                },
+                set: function (variable) {
+                    palletEmitterEmit = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletEmitterPart",
+            dataType: "Double",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Double,
+                        value: palletEmitterPart
+                    });
+                },
+                set: function (variable) {
+                    palletEmitterPart = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerElevatorUp_new",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerElevatorUp_new
+                    });
+                },
+                set: function (variable) {
+                    palletizerElevatorUp_new = variable.value;
+                    return opcua.StatusCodes.Good;
                 }
             }
         });
