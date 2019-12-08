@@ -66,6 +66,17 @@ let palletizerElevatorChain = false;
 let palletizerChain = true;
 let palletDiffSensorUp = false;
 let palletDiffSensorUp_flag = false;
+let palletizerClamp = false
+let palletTurn = false;
+
+
+//Turntable 
+let PTurntableFrontLimit = false;
+let PTurntableBackLimit = false;
+let PTurntableRollPlus = true;
+let PTurntableRollMinus = false;
+let PTurntableRollTurn = false;
+
 
 //Local Variables
 let palletcount = 0;
@@ -819,12 +830,13 @@ function post_initialize() {
                             setTimeout(() => {
                                 palletizerChain = false;
                                 palletizerElevatorLimit = true;
-                            }, 3300);
+                            }, 3500);
                             setTimeout(() => {
                                 palletizerElevatorUp_new = true;                                
                             }, 4000);
                             setTimeout(()=>{
                                 palletizerElevatorLimit = false;
+                                palletizerDiffSensor_flag = true;
                             },5500)
                             palletizerDiffSensor_flag = false;
                         }                                            
@@ -894,20 +906,48 @@ function post_initialize() {
                                  },4500);
 
                                  setTimeout(() => {
+                                    palletizerClamp = true;
+                                 }, 6000);
+
+                                 setTimeout(() => {
+                                    palletizerClamp = false;
+                                 }, 7500);
+
+                                 setTimeout(() => {
                                      palletizerOpenPlate = true;
-                                 }, 5500);
+                                 }, 8500);
 
                                  setTimeout(() => {
                                      palletizerElevatorDown = true;
-                                 }, 7000);
+                                 }, 10500);
 
                                  setTimeout(() => {
                                     palletizerOpenPlate = false;
-                                }, 10000);
+                                }, 12000);
+
+                                setTimeout(() => {
+                                    palletizerElevatorDown = false;
+                                    palletizerElevatorUp_new = false;
+                                }, 14000);
+
+                                setTimeout(() => {
+                                    palletizerElevatorLimit = true;
+                                }, 15000);
 
                                 setTimeout(() => {
                                     palletizerElevatorDown = true;
-                                }, 12000);
+                                }, 16000);
+
+                                setTimeout(() => {
+                                    palletizerChain = true;
+                                    palletEmitterEmit = true;
+                                }, 18000);
+
+                                setTimeout(()=>{
+                                    palletizerElevatorDown = false;
+                                    palletEmitterEmit = false;
+                                },19000);
+
                                 palletcount = 0;
                              }
 
@@ -919,23 +959,49 @@ function post_initialize() {
             }
         });
 
+        /**
+         * Palletizer Clamp
+         */
         namespace.addVariable({
             componentOf: device,
-            browseName: "palletCount",
-            dataType: "Double",
+            browseName: "palletTurn",
+            dataType: "Boolean",
             value: {
                 get: function () {
                     return new opcua.Variant({
-                        dataType: opcua.DataType.Double,
-                        value: palletcount
+                        dataType: opcua.DataType.Boolean,
+                        value: palletTurn
                     });
                 },
                 set: function (variable) {
-                    palletcount = variable.value;
+                    palletTurn = variable.value;
                     return opcua.StatusCodes.Good;
                 }
             }
         });
+
+        /**
+         * Palletizer Clamp
+         */
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "palletizerClamp",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: palletizerClamp
+                    });
+                },
+                set: function (variable) {
+                    palletizerClamp = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+
                 //Palletizer  
                 namespace.addVariable({
                     componentOf: device,
@@ -1041,6 +1107,119 @@ function post_initialize() {
                 },
                 set: function (variable) {
                     palletizerElevatorUp_new = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "PTurntableFrontLimit",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: PTurntableFrontLimit
+                    });
+                },
+                set: function (variable) {
+                    PTurntableFrontLimit = variable.value;
+                    if(PTurntableFrontLimit){
+                        PTurntableRollPlus = false;
+                        PTurntableRollTurn = true;
+                        setTimeout(() => {
+                            PTurntableRollMinus = true;
+                        }, 3000);
+                        setTimeout(() => {
+                            PTurntableRollMinus = false;
+                        }, 5500);
+                        setTimeout(() => {
+                            PTurntableRollTurn = false;
+                            PTurntableRollPlus = true;
+                        }, 7500);
+                    }
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "PTurntableRollMinus",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: PTurntableRollMinus
+                    });
+                },
+                set: function (variable) {
+                    PTurntableRollMinus = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "PTurntableRollPlus",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: PTurntableRollPlus
+                    });
+                },
+                set: function (variable) {
+                    PTurntableRollPlus = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "PTurntableRollTurn",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: PTurntableRollTurn
+                    });
+                },
+                set: function (variable) {
+                    PTurntableRollTurn = variable.value;
+                    return opcua.StatusCodes.Good;
+                }
+            }
+        });
+
+        namespace.addVariable({
+            componentOf: device,
+            browseName: "PTurntableBackLimit",
+            dataType: "Boolean",
+            value: {
+                get: function () {
+                    return new opcua.Variant({
+                        dataType: opcua.DataType.Boolean,
+                        value: PTurntableBackLimit
+                    });
+                },
+                set: function (variable) {
+                    PTurntableBackLimit = variable.value;
+                    if(PTurntableBackLimit){
+                        // setTimeout(()=>{
+                        //     PTurntableRollMinus = false;
+                        //     PTurntableRollTurn = false;
+                        // },2000);
+                        // setTimeout(()=>{
+                        //     PTurntableRollPlus = true;
+                        // },3000);
+                    }
                     return opcua.StatusCodes.Good;
                 }
             }
