@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "node-opcua": "^0.7.1"
+    "node-opcua": "^2.74.0"
   }
 }
